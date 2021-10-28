@@ -27,6 +27,23 @@ db = SQLAlchemy(app)
 # Models.
 #----------------------------------------------------------------------------#
 
+
+# Association tables
+venues_shows = db.Table('venues_shows',
+                        db.Column('venues_id', db.Integer, db.ForeignKey('Venue.id'), primary_key=True),
+                        db.Column('shows_id', db.Integer, db.ForeignKey('Show.id'), primary_key=True),
+                        )
+
+artists_shows = db.Table('artists_shows',
+                        db.Column('artist_id', db.Integer, db.ForeignKey('Artist.id')),
+                        db.Column('show_id', db.Integer, db.ForeignKey('Show.id'))
+                        )
+
+artists_genres = db.Table('artists_genres',
+                        db.Column('artist_id', db.Integer, db.ForeignKey('Artist.id')),
+                        db.Column('genre_id', db.Integer, db.ForeignKey('Genre.id'))
+                        )
+
 class Venue(db.Model):
     __tablename__ = 'Venue'
 
@@ -39,7 +56,20 @@ class Venue(db.Model):
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
 
+    seeking_talent = db.Column(db.Boolean, nullable=False)
+    seeking_description = db.Column(db.String(120))
+
+    shows = db.relationship('Show',
+                            secondary=venues_shows,
+                            backref=db.backref('venues', lazy=True))
+
+
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
+    # relationships:
+    # upcoming_shows
+    # past_shows
+    # generes -> artists
+
 
 class Artist(db.Model):
     __tablename__ = 'Artist'
@@ -53,9 +83,33 @@ class Artist(db.Model):
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
 
+
+    seeking_description = db.Column(db.String(120), nullable=True)
+
+    shows = db.relationship('Show',
+                            secondary=artists_shows,
+                            backref=db.backref('artists', lazy=True))
+    # relationships
+    # past_shows -> shows
+    # upcoming_shows -> shows
+
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
 # TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
+class Show(db.Model):
+    __tablename__ = 'Show'
+
+    id = db.Column(db.Integer, primary_key=True)
+    start_time = db.Column(db.String(), nullable=False)
+
+    # relationship
+    # artist_id
+    
+class Genre(db.Model):
+    __tablename__ = 'Genre'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(20))
 
 #----------------------------------------------------------------------------#
 # Filters.
@@ -511,7 +565,7 @@ if not app.debug:
 
 # Default port:
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)
 
 # Or specify port manually:
 '''
