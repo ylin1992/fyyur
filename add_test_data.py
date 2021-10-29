@@ -209,6 +209,7 @@ def sample_genres():
     ('Reggae', 'Reggae'),
     ('Rock n Roll', 'Rock n Roll'),
     ('Soul', 'Soul'),
+    ('Swing', 'Swing'),
     ('Other', 'Other')]
     return [d[0] for d in data]
 
@@ -226,7 +227,7 @@ if __name__ == '__main__':
     Venue.query.delete()
     Artist.query.delete()
     Show.query.delete()
-    # Genre.query.delete()
+    Genre.query.delete()
     db.session.commit()
     
     venues = [Venue(name=d['name'],
@@ -237,6 +238,7 @@ if __name__ == '__main__':
                     website=d['website'],
                     facebook_link=d['facebook_link'],
                     seeking_talent=d['seeking_talent'],
+                    seeking_description=d['seeking_description'] if 'seeking_description' in d else None,
                     image_link=d['image_link']) 
                     for d in sample_venues()]
     
@@ -268,8 +270,8 @@ if __name__ == '__main__':
             db.session.add(artist)
         for show in shows:
             db.session.add(show)
-        # for genre in genres:
-        #     db.session.add(genre)
+        for genre in genres:
+            db.session.add(genre)
         db.session.commit()
     except Exception as e:
         print(e)
@@ -290,5 +292,11 @@ if __name__ == '__main__':
         print(show_info)
         show.venues = [show_info['venue']]
         show.artists = [show_info['artist']]
+    
+    # setup genres for venues
+    for (venue, data) in zip(venues, sample_venues()):
+        print(getGenres(data['genres']))
+        venue.genres = getGenres(data['genres'])
+
     db.session.commit()
     db.session.close()

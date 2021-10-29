@@ -13,7 +13,6 @@ from logging import Formatter, FileHandler
 from flask_wtf import Form
 from forms import *
 from flask_migrate import Migrate
-import helper
 
 #----------------------------------------------------------------------------#
 # App Config.
@@ -24,6 +23,7 @@ moment = Moment(app)
 app.config.from_object('config')
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+
 
 # TODO: connect to a local postgresql database
 
@@ -48,6 +48,11 @@ artists_genres = db.Table('artists_genres',
                         db.Column('genre_id', db.Integer, db.ForeignKey('Genre.id', ondelete='cascade'), primary_key=True)
                         )
 
+venues_genres = db.Table('venues_genres',
+                        db.Column('venue_id', db.Integer, db.ForeignKey('Venue.id', ondelete='cascade'), primary_key=True),
+                        db.Column('genre_id', db.Integer, db.ForeignKey('Genre.id', ondelete='cascade'), primary_key=True)
+                        )
+
 class Venue(db.Model):
     __tablename__ = 'Venue'
 
@@ -66,6 +71,9 @@ class Venue(db.Model):
 
     shows = db.relationship('Show',
                             secondary=venues_shows,
+                            backref=db.backref('venues', lazy=True))
+    genres = db.relationship('Genre',
+                            secondary=venues_genres,
                             backref=db.backref('venues', lazy=True))
 
 
@@ -270,9 +278,8 @@ def show_venue(venue_id):
     "past_shows_count": 1,
     "upcoming_shows_count": 1,
   }
-  data = list(filter(lambda d: d['id'] == venue_id, [data1, data2, data3]))[0]
-  print("=> data", data)
-  return render_template('pages/show_venue.html', venue=data)
+  #data = list(filter(lambda d: d['id'] == venue_id, [data1, data2, data3]))[0]
+  return render_template('pages/show_venue.html', venue=helper.getVenueFromID(venue_id))
 
 #  Create Venue
 #  ----------------------------------------------------------------
@@ -576,6 +583,7 @@ if not app.debug:
 
 # Default port:
 if __name__ == '__main__':
+    import helper
     app.run(debug=True)
 
 # Or specify port manually:
