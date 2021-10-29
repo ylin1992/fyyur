@@ -1,8 +1,6 @@
 import re
 from app import Venue, Show, Artist, Genre, db
 
-
-
 def getAreas():
     venues = Venue.query.order_by('state', 'city').all()
     if (len(venues) == 0):      
@@ -72,3 +70,68 @@ def searchVenueFromTerm(searchTerm):
         } for v in result],
     }
     return response
+
+def createVenueFromForm(formData):
+    print(formData.name.data)
+    venue = Venue(
+        name=formData.name.data,
+        city=formData.city.data,
+        state=formData.state.data,
+        address=formData.address.data,
+        phone=formData.phone.data,
+        image_link=formData.image_link.data,
+        genres=getGenresFromStringList(formData.genres.data),
+        facebook_link=formData.facebook_link.data,
+        website=formData.website_link.data,
+        seeking_talent=formData.seeking_talent.data,
+        seeking_description=formData.seeking_description.data
+    )
+    try:
+        db.session.add(venue)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        raise e
+    finally:
+        db.session.close()
+
+def getGenresFromStringList(strings):
+    print(strings)
+    return [Genre.query.filter_by(name=string).first() for string in strings]
+
+
+def updateVenueByForm(venue_id, formData):
+    venue = Venue.query.get(venue_id)
+    
+    try:
+        venue.name=formData.name.data
+        venue.city=formData.city.data
+        venue.state=formData.state.data
+        venue.address=formData.address.data
+        venue.phone=formData.phone.data
+        venue.image_link=formData.image_link.data
+        venue.genres=getGenresFromStringList(formData.genres.data)
+        venue.facebook_link=formData.facebook_link.data
+        venue.website=formData.website_link.data
+        venue.seeking_talent=formData.seeking_talent.data
+        venue.seeking_description=formData.seeking_description.data
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        raise e
+    finally:
+        db.session.close()
+
+def preFilling(venue_id, form):
+    venue = Venue.query.get(venue_id)
+    form.name.data = venue.name
+    form.genres.data = [g.name for g in venue.genres]
+    form.address.data = venue.address
+    form.city.data = venue.city
+    form.state.data = venue.state
+    form.phone.data = venue.phone
+    form.website_link.data = venue.website
+    form.facebook_link.data = venue.facebook_link
+    form.seeking_talent.data = venue.seeking_talent
+    form.seeking_description.data = venue.seeking_description
+    form.image_link.data = venue.image_link
