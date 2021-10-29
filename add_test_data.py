@@ -230,7 +230,8 @@ if __name__ == '__main__':
     Genre.query.delete()
     db.session.commit()
     
-    venues = [Venue(name=d['name'],
+    venues = [Venue(id=d['id'],
+                    name=d['name'],
                     address=d['address'],
                     city=d['city'],
                     state=d['state'],
@@ -242,7 +243,8 @@ if __name__ == '__main__':
                     image_link=d['image_link']) 
                     for d in sample_venues()]
     
-    artists = [Artist(name=d['name'],
+    artists = [Artist(id=d['id'],
+                    name=d['name'],
                     city=d['city'],
                     state=d['state'],
                     phone=d['phone'],
@@ -290,8 +292,8 @@ if __name__ == '__main__':
     for (show, data) in zip(shows, sample_shows()):     
         show_info = getSingleVenueAndArtist(data)   
         print(show_info)
-        show.venues = [show_info['venue']]
-        show.artists = [show_info['artist']]
+        show.venue_id = data['venue_id']
+        show.artist_id = data['artist_id']
     
     # setup genres for venues
     for (venue, data) in zip(venues, sample_venues()):

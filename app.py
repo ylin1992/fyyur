@@ -118,7 +118,11 @@ class Show(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     start_time = db.Column(db.String(), nullable=False)
-
+    venue_id = db.Column(db.Integer, db.ForeignKey('Venue.id'))
+    # assume that one show is only hosted by one artist, hence one-to-one relationship
+    # but the model is still opened to many-to-many relationship to handle
+    # scenarios that one show can be hosted by multiple artists
+    artist_id = db.Column(db.Integer, db.ForeignKey('Artist.id'))
     # relationship
     # artist_id
     
