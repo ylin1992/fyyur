@@ -12,6 +12,8 @@ import logging
 from logging import Formatter, FileHandler
 from flask_wtf import Form
 from forms import *
+from flask_migrate import Migrate
+
 #----------------------------------------------------------------------------#
 # App Config.
 #----------------------------------------------------------------------------#
@@ -20,6 +22,7 @@ app = Flask(__name__)
 moment = Moment(app)
 app.config.from_object('config')
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 # TODO: connect to a local postgresql database
 
@@ -30,18 +33,18 @@ db = SQLAlchemy(app)
 
 # Association tables
 venues_shows = db.Table('venues_shows',
-                        db.Column('venues_id', db.Integer, db.ForeignKey('Venue.id'), primary_key=True),
-                        db.Column('shows_id', db.Integer, db.ForeignKey('Show.id'), primary_key=True),
+                        db.Column('venues_id', db.Integer, db.ForeignKey('Venue.id', ondelete='cascade'), primary_key=True),
+                        db.Column('shows_id', db.Integer, db.ForeignKey('Show.id', ondelete='cascade'), primary_key=True),
                         )
 
 artists_shows = db.Table('artists_shows',
-                        db.Column('artist_id', db.Integer, db.ForeignKey('Artist.id')),
-                        db.Column('show_id', db.Integer, db.ForeignKey('Show.id'))
+                        db.Column('artist_id', db.Integer, db.ForeignKey('Artist.id', ondelete='cascade'), primary_key=True),
+                        db.Column('show_id', db.Integer, db.ForeignKey('Show.id', ondelete='cascade'), primary_key=True)
                         )
 
 artists_genres = db.Table('artists_genres',
-                        db.Column('artist_id', db.Integer, db.ForeignKey('Artist.id')),
-                        db.Column('genre_id', db.Integer, db.ForeignKey('Genre.id'))
+                        db.Column('artist_id', db.Integer, db.ForeignKey('Artist.id', ondelete='cascade'), primary_key=True),
+                        db.Column('genre_id', db.Integer, db.ForeignKey('Genre.id', ondelete='cascade'), primary_key=True)
                         )
 
 class Venue(db.Model):
@@ -55,7 +58,8 @@ class Venue(db.Model):
     phone = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
-
+    
+    website = db.Column(db.String(500))
     seeking_talent = db.Column(db.Boolean, nullable=False)
     seeking_description = db.Column(db.String(120))
 
@@ -82,12 +86,16 @@ class Artist(db.Model):
     genres = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
-
-
+    website = db.Column(db.String(120))
+    seeking_venue = db.Column(db.Boolean)
     seeking_description = db.Column(db.String(120), nullable=True)
 
     shows = db.relationship('Show',
                             secondary=artists_shows,
+                            backref=db.backref('artists', lazy=True))
+
+    genres = db.relationship('Genre',
+                            secondary=artists_genres,
                             backref=db.backref('artists', lazy=True))
     # relationships
     # past_shows -> shows
@@ -109,7 +117,7 @@ class Genre(db.Model):
     __tablename__ = 'Genre'
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(20))
+    name = db.Column(db.String(20), unique=True)
 
 #----------------------------------------------------------------------------#
 # Filters.
