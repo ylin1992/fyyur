@@ -60,7 +60,7 @@ def getVenueFromID(venue_id):
 
 
 def searchVenueFromTerm(searchTerm):
-    result = Venue.query.filter(Venue.name.like("%" + searchTerm + "%")).all()
+    result = Venue.query.filter(Venue.name.ilike("%" + searchTerm + "%")).all()
     response = {
         "count": len(result),
         "data": [{

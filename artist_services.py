@@ -1,4 +1,5 @@
 from app import Venue, Show, Artist, Genre, db
+import services
 
 def getArtistList():
     artists = Artist.query.all()
@@ -36,7 +37,7 @@ def getArtistByID(artist_id):
     }
 
 def searchArtistFromTerm(searchTerm):
-    result = Artist.query.filter(Artist.name.like("%" + searchTerm + "%")).all()
+    result = Artist.query.filter(Artist.name.ilike("%" + searchTerm + "%")).all()
     response = {
         "count": len(result),
         "data": [{
@@ -46,3 +47,61 @@ def searchArtistFromTerm(searchTerm):
         } for v in result],
     }
     return response
+
+def createArtistFromForm(formData):
+    print(formData.name.data)
+    artist = Artist(
+        name=formData.name.data,
+        city=formData.city.data,
+        state=formData.state.data,
+        phone=formData.phone.data,
+        image_link=formData.image_link.data,
+        genres=services.getGenresFromStringList(formData.genres.data),
+        facebook_link=formData.facebook_link.data,
+        website=formData.website_link.data,
+        seeking_venue=formData.seeking_venue.data,
+        seeking_description=formData.seeking_description.data
+    )
+    try:
+        db.session.add(artist)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        raise e
+    finally:
+        db.session.close()
+
+def updateArtistByForm(artist_id, formData):
+    artist = Artist.query.get(artist_id)
+    
+    try:
+        artist.name=formData.name.data
+        artist.city=formData.city.data
+        artist.state=formData.state.data
+        artist.phone=formData.phone.data
+        artist.image_link=formData.image_link.data
+        artist.genres=services.getGenresFromStringList(formData.genres.data)
+        artist.facebook_link=formData.facebook_link.data
+        artist.website=formData.website_link.data
+        artist.seeking_venue=formData.seeking_venue.data
+        artist.seeking_description=formData.seeking_description.data
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        raise e
+    finally:
+        db.session.close()
+
+
+def preFilling(artist_id, form):
+    artist = Artist.query.get(artist_id)
+    form.name.data = artist.name
+    form.genres.data = [g.name for g in artist.genres]
+    form.city.data = artist.city
+    form.state.data = artist.state
+    form.phone.data = artist.phone
+    form.website_link.data = artist.website
+    form.facebook_link.data = artist.facebook_link
+    form.seeking_venue.data = artist.seeking_venue
+    form.seeking_description.data = artist.seeking_description
+    form.image_link.data = artist.image_link
