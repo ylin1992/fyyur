@@ -1,5 +1,5 @@
 from models import Venue, Show, Artist, Genre, db
-import services
+import genre_services
 
 def getArtistList():
     artists = Artist.query.all()
@@ -56,7 +56,7 @@ def createArtistFromForm(formData):
         state=formData.state.data,
         phone=formData.phone.data,
         image_link=formData.image_link.data,
-        genres=services.getGenresFromStringList(formData.genres.data),
+        genres=genre_services.getGenresFromStringList(formData.genres.data),
         facebook_link=formData.facebook_link.data,
         website=formData.website_link.data,
         seeking_venue=formData.seeking_venue.data,
@@ -80,7 +80,7 @@ def updateArtistByForm(artist_id, formData):
         artist.state=formData.state.data
         artist.phone=formData.phone.data
         artist.image_link=formData.image_link.data
-        artist.genres=services.getGenresFromStringList(formData.genres.data)
+        artist.genres=genre_services.getGenresFromStringList(formData.genres.data)
         artist.facebook_link=formData.facebook_link.data
         artist.website=formData.website_link.data
         artist.seeking_venue=formData.seeking_venue.data

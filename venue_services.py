@@ -1,5 +1,6 @@
 import re
 from models import Venue, Show, Artist, Genre, db
+import genre_services
 
 def getAreas():
     venues = Venue.query.order_by('state', 'city').all()
@@ -80,7 +81,7 @@ def createVenueFromForm(formData):
         address=formData.address.data,
         phone=formData.phone.data,
         image_link=formData.image_link.data,
-        genres=getGenresFromStringList(formData.genres.data),
+        genres=genre_services.getGenresFromStringList(formData.genres.data),
         facebook_link=formData.facebook_link.data,
         website=formData.website_link.data,
         seeking_talent=formData.seeking_talent.data,
@@ -95,9 +96,7 @@ def createVenueFromForm(formData):
     finally:
         db.session.close()
 
-def getGenresFromStringList(strings):
-    print(strings)
-    return [Genre.query.filter_by(name=string).first() for string in strings]
+
 
 
 def updateVenueByForm(venue_id, formData):
@@ -110,7 +109,7 @@ def updateVenueByForm(venue_id, formData):
         venue.address=formData.address.data
         venue.phone=formData.phone.data
         venue.image_link=formData.image_link.data
-        venue.genres=getGenresFromStringList(formData.genres.data)
+        venue.genres=genre_services.getGenresFromStringList(formData.genres.data)
         venue.facebook_link=formData.facebook_link.data
         venue.website=formData.website_link.data
         venue.seeking_talent=formData.seeking_talent.data
@@ -135,3 +134,12 @@ def preFilling(venue_id, form):
     form.seeking_talent.data = venue.seeking_talent
     form.seeking_description.data = venue.seeking_description
     form.image_link.data = venue.image_link
+
+def deleteVenueById(venue_id):
+    try:
+        Venue.query.filter_by(id=venue_id).delete()
+        db.session.commit()
+    except:
+        db.session.rollback()
+    finally:
+        db.session.close()

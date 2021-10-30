@@ -1,5 +1,4 @@
 from models import Venue, Show, Artist, Genre, db
-import services
 import exceptions
 def getShows():
     shows = Show.query.order_by('venue_id').all()

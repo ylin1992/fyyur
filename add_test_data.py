@@ -1,4 +1,5 @@
-from app import Venue, Show, Artist, Genre, db
+from models import Venue, Show, Artist, Genre
+from app import db
 
 def sample_venues():
     data1={

@@ -76,7 +76,25 @@
 </section>
 
 <a href="/venues/{{ venue.id }}/edit"><button class="btn btn-primary btn-lg">Edit</button></a>
-<button action="/venues/{{ venue.id }}/delete" data-confirm="Are you sure?" data-method="delete" class="btn btn-secondary btn-lg">DELETE</button>
+<button id="veneu-delete-button" class="btn btn-secondary btn-lg" data-id={{ venue.id }}>DELETE</button>
+
+<script>
+	const deleteBtn = document.getElementById('veneu-delete-button');
+	deleteBtn.onclick = function(e) {
+		e.preventDefault();
+		let venueId = e.target.dataset['id']
+		console.log(venueId);
+		fetch('/venues/' + venueId + '/delete', {
+			method: 'DELETE', // or 'PUT'
+			headers: {
+				  'Content-Type': 'application/json',
+				  }
+	   })
+		.then( function() {
+			window.location.href = "/";
+		})
+	}
+</script>
 
 {% endblock %}
 

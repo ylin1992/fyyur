@@ -3,6 +3,8 @@
 #----------------------------------------------------------------------------#
 
 import json
+from flask.json import jsonify
+
 import dateutil.parser
 import babel
 from flask import Flask, render_template, request, Response, flash, redirect, url_for
@@ -15,7 +17,7 @@ from forms import *
 from flask_migrate import Migrate
 import exceptions
 from models import Venue, Show, Artist, Genre, db
-import services
+import venue_services
 import artist_services
 import show_services
 import utils
@@ -63,7 +65,7 @@ def index():
 def venues():
   # TODO: replace with real venues data.
   #       num_upcoming_shows should be aggregated based on number of upcoming shows per venue.
-  areas = services.getAreas()
+  areas = venue_services.getAreas()
   return render_template('pages/venues.html', areas=areas);
 
 @app.route('/venues/search', methods=['POST'])
@@ -74,13 +76,13 @@ def search_venues():
   
   searchTerm = request.form.get('search_term')
   print(f'Recieving search term {searchTerm}')
-  return render_template('pages/search_venues.html', results=services.searchVenueFromTerm(searchTerm), search_term=request.form.get('search_term', ''))
+  return render_template('pages/search_venues.html', results=venue_services.searchVenueFromTerm(searchTerm), search_term=request.form.get('search_term', ''))
 
 @app.route('/venues/<int:venue_id>')
 def show_venue(venue_id):
   # shows the venue page with the given venue_id
   # TODO: replace with real venue data from the venues table, using venue_id
-  return render_template('pages/show_venue.html', venue=services.getVenueFromID(venue_id))
+  return render_template('pages/show_venue.html', venue=venue_services.getVenueFromID(venue_id))
 
 #  Create Venue
 #  ----------------------------------------------------------------
@@ -96,7 +98,7 @@ def create_venue_submission():
   # TODO: modify data to be the data object returned from db insertion
   try:
     form = VenueForm()
-    services.createVenueFromForm(form)
+    venue_services.createVenueFromForm(form)
     flash('Venue ' + request.form['name'] + ' was successfully listed!')
   except Exception as e:
     print(e)
@@ -107,14 +109,24 @@ def create_venue_submission():
   # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
   return render_template('pages/home.html')
 
-@app.route('/venues/<venue_id>/delete', methods=['DELETE'])
+@app.route('/venues/<venue_id>/delete', methods=['GET', 'DELETE'])
 def delete_venue(venue_id):
   # TODO: Complete this endpoint for taking a venue_id, and using
   # SQLAlchemy ORM to delete a record. Handle cases where the session commit could fail.
   print("Receiving delete request from ID: ", venue_id)
+  try:
+    venue_services.deleteVenueById(venue_id)
+  except Exception as e:
+    print(e)
+  finally:
+    print("Done")
+    if request.method == 'GET':
+      return render_template('pages/home.html')
+    else:
+      return jsonify({ 'success': True })
+
   # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
   # clicking that button delete it from the db then redirect the user to the homepage
-  return redirect('/')
 
 #  Artists
 #  ----------------------------------------------------------------
@@ -158,14 +170,14 @@ def edit_artist_submission(artist_id):
 @app.route('/venues/<int:venue_id>/edit', methods=['GET'])
 def edit_venue(venue_id):
   form = VenueForm()
-  services.preFilling(venue_id, form)
+  venue_services.preFilling(venue_id, form)
   # TODO: populate form with values from venue with ID <venue_id>
-  return render_template('forms/edit_venue.html', form=form, venue=services.getVenueFromID(venue_id))
+  return render_template('forms/edit_venue.html', form=form, venue=venue_services.getVenueFromID(venue_id))
 
 @app.route('/venues/<int:venue_id>/edit', methods=['POST'])
 def edit_venue_submission(venue_id):
   form = VenueForm()
-  services.updateVenueByForm(venue_id, form)
+  venue_services.updateVenueByForm(venue_id, form)
   # TODO: take values from the form submitted, and update existing
   # venue record with ID <venue_id> using the new attributes
   return redirect(url_for('show_venue', venue_id=venue_id))
