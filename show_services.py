@@ -12,7 +12,7 @@ def getShows():
             "artist_id": artist.id,
             "artist_name": artist.name,
             "artist_image_link": artist.image_link,
-            "start_time": show.start_time
+            "start_time": str(show.start_time)
         })
     return data
 
@@ -38,3 +38,4 @@ def createShowFromForm(formData):
         raise e
     finally:
         db.session.close()
+

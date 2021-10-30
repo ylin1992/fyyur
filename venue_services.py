@@ -1,6 +1,7 @@
 import re
 from models import Venue, Show, Artist, Genre, db
 import genre_services
+import datetime
 
 def getAreas():
     venues = Venue.query.order_by('state', 'city').all()
@@ -48,7 +49,7 @@ def getVenueFromID(venue_id):
         "seeking_talent": venue.seeking_talent,
         "seeking_description": venue.seeking_description,
         "image_link": venue.image_link,
-        "past_shows": [{ # TODO: adjust show and artist to one-to-many
+        "past_shows": [{ 
             "artist_id": 4,
             "artist_name": "Guns N Petals",
             "artist_image_link": "https://images.unsplash.com/photo-1549213783-8284d0336c4f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=300&q=80",
@@ -59,6 +60,10 @@ def getVenueFromID(venue_id):
         "upcoming_shows_count": 0,
     }
 
+def __getPastAndUpcomingShows(venue_id):
+    showsQuery = Show.query.filter_by(venue_id=venue_id)
+    shows = showsQuery.filter(Show.start_time > datetime.datetime.now())
+    return shows
 
 def searchVenueFromTerm(searchTerm):
     result = Venue.query.filter(Venue.name.ilike("%" + searchTerm + "%")).all()

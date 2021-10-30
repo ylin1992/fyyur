@@ -93,7 +93,7 @@ class Show(db.Model):
     __tablename__ = 'Show'
 
     id = db.Column(db.Integer, primary_key=True)
-    start_time = db.Column(db.String(), nullable=False)
+    start_time = db.Column(db.DateTime, nullable=False)
     venue_id = db.Column(db.Integer, db.ForeignKey('Venue.id', ondelete='cascade'))
     # assume that one show is only hosted by one artist, hence one-to-one relationship
     # but the model is still opened to many-to-many relationship to handle
@@ -101,7 +101,6 @@ class Show(db.Model):
     artist_id = db.Column(db.Integer, db.ForeignKey('Artist.id', ondelete='cascade'))
     # relationship
     # artist_id
-    
 class Genre(db.Model):
     __tablename__ = 'Genre'
 

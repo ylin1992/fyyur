@@ -1,5 +1,5 @@
-from models import Venue, Show, Artist, Genre
-from app import db
+
+
 
 def sample_venues():
     data1={
@@ -224,82 +224,84 @@ def getSingleVenueAndArtist(show):
     }
 
 if __name__ == '__main__':
-    
-    Venue.query.delete()
-    Artist.query.delete()
-    Show.query.delete()
-    Genre.query.delete()
-    db.session.commit()
-    
-    venues = [Venue(id=d['id'],
-                    name=d['name'],
-                    address=d['address'],
-                    city=d['city'],
-                    state=d['state'],
-                    phone=d['phone'],
-                    website=d['website'],
-                    facebook_link=d['facebook_link'],
-                    seeking_talent=d['seeking_talent'],
-                    seeking_description=d['seeking_description'] if 'seeking_description' in d else None,
-                    image_link=d['image_link']) 
-                    for d in sample_venues()]
-    
-    artists = [Artist(id=d['id'],
-                    name=d['name'],
-                    city=d['city'],
-                    state=d['state'],
-                    phone=d['phone'],
-                    website=d['website'] if 'website' in d else None,
-                    facebook_link=d['facebook_link'] if 'facebook_link' in d else None,
-                    seeking_venue=d['seeking_venue'],
-                    seeking_description = d['seeking_description'] if 'seeking_description' in d else None,
-                    image_link=d['image_link']) 
-                    for d in sample_artists()]
-    
+    from app import app, db, Venue, Show, Artist, Genre
+    with app.app_context():
 
-
-    shows = [Show(start_time=d['start_time'])
-            for d in sample_shows()]
-    
-    genres = [Genre(name=d)
-            for d in sample_genres()]
-
-
-
-    try:
-        for venue in venues:
-            db.session.add(venue)
-        for artist in artists:
-            db.session.add(artist)
-        for show in shows:
-            db.session.add(show)
-        for genre in genres:
-            db.session.add(genre)
+        Venue.query.delete()
+        Artist.query.delete()
+        Show.query.delete()
+        Genre.query.delete()
         db.session.commit()
-    except Exception as e:
-        print(e)
-        db.session.rollback()
+        
+        venues = [Venue(id=d['id'],
+                        name=d['name'],
+                        address=d['address'],
+                        city=d['city'],
+                        state=d['state'],
+                        phone=d['phone'],
+                        website=d['website'],
+                        facebook_link=d['facebook_link'],
+                        seeking_talent=d['seeking_talent'],
+                        seeking_description=d['seeking_description'] if 'seeking_description' in d else None,
+                        image_link=d['image_link']) 
+                        for d in sample_venues()]
+        
+        artists = [Artist(id=d['id'],
+                        name=d['name'],
+                        city=d['city'],
+                        state=d['state'],
+                        phone=d['phone'],
+                        website=d['website'] if 'website' in d else None,
+                        facebook_link=d['facebook_link'] if 'facebook_link' in d else None,
+                        seeking_venue=d['seeking_venue'],
+                        seeking_description = d['seeking_description'] if 'seeking_description' in d else None,
+                        image_link=d['image_link']) 
+                        for d in sample_artists()]
+        
 
 
-    # Test relationship
-    # setup genre for artists
-    for (artist, data) in zip(artists, sample_artists()):
-        print(getGenres(data['genres']))
-        artist.genres = getGenres(data['genres'])
-    
-    # setup venues, artists for shows
-    # TODO: check add-twice scenario, and think about one-to-one relationship
-    # for venue<-->show
-    for (show, data) in zip(shows, sample_shows()):     
-        show_info = getSingleVenueAndArtist(data)   
-        print(show_info)
-        show.venue_id = data['venue_id']
-        show.artist_id = data['artist_id']
-    
-    # setup genres for venues
-    for (venue, data) in zip(venues, sample_venues()):
-        print(getGenres(data['genres']))
-        venue.genres = getGenres(data['genres'])
+        shows = [Show(start_time=d['start_time'])
+                for d in sample_shows()]
+        
+        genres = [Genre(name=d)
+                for d in sample_genres()]
 
-    db.session.commit()
-    db.session.close()
+
+
+        try:
+            for venue in venues:
+                db.session.add(venue)
+            for artist in artists:
+                db.session.add(artist)
+            for show in shows:
+                db.session.add(show)
+            for genre in genres:
+                db.session.add(genre)
+            db.session.commit()
+        except Exception as e:
+            print(e)
+            db.session.rollback()
+
+
+        # Test relationship
+        # setup genre for artists
+        for (artist, data) in zip(artists, sample_artists()):
+            print(getGenres(data['genres']))
+            artist.genres = getGenres(data['genres'])
+        
+        # setup venues, artists for shows
+        # TODO: check add-twice scenario, and think about one-to-one relationship
+        # for venue<-->show
+        for (show, data) in zip(shows, sample_shows()):     
+            show_info = getSingleVenueAndArtist(data)   
+            print(show_info)
+            show.venue_id = data['venue_id']
+            show.artist_id = data['artist_id']
+        
+        # setup genres for venues
+        for (venue, data) in zip(venues, sample_venues()):
+            print(getGenres(data['genres']))
+            venue.genres = getGenres(data['genres'])
+
+        db.session.commit()
+        db.session.close()
