@@ -1,4 +1,5 @@
 from models import Venue, Show, Artist, Genre, db
+import datetime
 import exceptions
 def getShows():
     shows = Show.query.order_by('venue_id').all()
@@ -39,3 +40,22 @@ def createShowFromForm(formData):
     finally:
         db.session.close()
 
+def getPastShowsByArtist(artist_id):
+    showsQuery = Show.query.filter_by(artist_id=artist_id)
+    shows = showsQuery.filter(Show.start_time < datetime.datetime.now()).all()
+    return shows
+
+def getUpcomingByArtist(artist_id):
+    showsQuery = Show.query.filter_by(artist_id=artist_id)
+    shows = showsQuery.filter(Show.start_time > datetime.datetime.now()).all()
+    return shows
+
+def getPastShowsByVenue(venue_id):
+    showsQuery = Show.query.filter_by(venue_id=venue_id)
+    shows = showsQuery.filter(Show.start_time < datetime.datetime.now()).all()
+    return shows
+
+def getUpcomingByVenue(venue_id):
+    showsQuery = Show.query.filter_by(venue_id=venue_id)
+    shows = showsQuery.filter(Show.start_time > datetime.datetime.now()).all()
+    return shows

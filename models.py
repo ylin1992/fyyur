@@ -55,10 +55,6 @@ class Venue(db.Model):
 
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
-    # relationships:
-    # upcoming_shows
-    # past_shows
-    # generes -> artists
 
 
 class Artist(db.Model):

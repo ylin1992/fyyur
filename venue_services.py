@@ -1,6 +1,8 @@
 import re
 from models import Venue, Show, Artist, Genre, db
 import genre_services
+import artist_services
+import show_services
 import datetime
 
 def getAreas():
@@ -36,6 +38,8 @@ def getAreas():
 
 def getVenueFromID(venue_id):
     venue = Venue.query.get(venue_id)
+    pastShows = show_services.getPastShowsByVenue(venue.id)
+    upcomingShows  = show_services.getUpcomingByVenue(venue.id)
     return {
         'id': venue.id,
         'name': venue.name,
@@ -50,20 +54,22 @@ def getVenueFromID(venue_id):
         "seeking_description": venue.seeking_description,
         "image_link": venue.image_link,
         "past_shows": [{ 
-            "artist_id": 4,
-            "artist_name": "Guns N Petals",
-            "artist_image_link": "https://images.unsplash.com/photo-1549213783-8284d0336c4f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=300&q=80",
-            "start_time": "2019-05-21T21:30:00.000Z"
-        }],
-        "upcoming_shows": [],
-        "past_shows_count": 1,
-        "upcoming_shows_count": 0,
+            "artist_id": show.artist_id,
+            "artist_name": artist_services.getArtistNameFromID(show.artist_id),
+            "artist_image_link": artist_services.getArtistImageLinkFromID(show.artist_id),
+            "start_time": str(show.start_time)
+        } for show in pastShows],
+        "upcoming_shows": [{ 
+            "artist_id": show.artist_id,
+            "artist_name": artist_services.getArtistNameFromID(show.artist_id),
+            "artist_image_link": artist_services.getArtistImageLinkFromID(show.artist_id),
+            "start_time": str(show.start_time)
+        } for show in upcomingShows],
+        "past_shows_count": len(pastShows),
+        "upcoming_shows_count": len(upcomingShows),
     }
 
-def __getPastAndUpcomingShows(venue_id):
-    showsQuery = Show.query.filter_by(venue_id=venue_id)
-    shows = showsQuery.filter(Show.start_time > datetime.datetime.now())
-    return shows
+
 
 def searchVenueFromTerm(searchTerm):
     result = Venue.query.filter(Venue.name.ilike("%" + searchTerm + "%")).all()
@@ -148,3 +154,9 @@ def deleteVenueById(venue_id):
         db.session.rollback()
     finally:
         db.session.close()
+
+def getVenueNameByID(venue_id):
+    return Venue.query.get(venue_id).name
+
+def getImageLinkByID(venue_id):
+    return Venue.query.get(venue_id).image_link

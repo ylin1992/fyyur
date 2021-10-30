@@ -1,5 +1,8 @@
 from models import Venue, Show, Artist, Genre, db
 import genre_services
+import show_services
+import venue_services
+import datetime
 
 def getArtistList():
     artists = Artist.query.all()
@@ -12,7 +15,8 @@ def getArtistByID(artist_id):
     artist = Artist.query.get(artist_id)
     if artist is None:
         return None
-    
+    pastShows = show_services.getPastShowsByArtist(artist.id)
+    upcomingShows  = show_services.getUpcomingByArtist(artist.id)
     return {
         "id": artist.id,
         "name": artist.name,
@@ -26,15 +30,22 @@ def getArtistByID(artist_id):
         "seeking_description": artist.seeking_description,
         "image_link": artist.image_link,
         "past_shows": [{
-        "venue_id": 1,
-        "venue_name": "The Musical Hop",
-        "venue_image_link": "https://images.unsplash.com/photo-1543900694-133f37abaaa5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60",
-        "start_time": "2019-05-21T21:30:00.000Z"
-        }],
-        "upcoming_shows": [],
-        "past_shows_count": 1,
-        "upcoming_shows_count": 0,
+            "venue_id": show.venue_id,
+            "venue_name": venue_services.getVenueNameByID(show.venue_id),
+            "venue_image_link": venue_services.getImageLinkByID(show.venue_id),
+            "start_time": str(show.start_time)
+        } for show in pastShows],
+        "upcoming_shows": [{
+            "venue_id": show.venue_id,
+            "venue_name": venue_services.getVenueNameByID(show.venue_id),
+            "venue_image_link": venue_services.getImageLinkByID(show.venue_id),
+            "start_time": str(show.start_time)
+        } for show in upcomingShows],
+        "past_shows_count": len(pastShows),
+        "upcoming_shows_count": len(upcomingShows),
     }
+
+
 
 def searchArtistFromTerm(searchTerm):
     result = Artist.query.filter(Artist.name.ilike("%" + searchTerm + "%")).all()
@@ -105,3 +116,10 @@ def preFilling(artist_id, form):
     form.seeking_venue.data = artist.seeking_venue
     form.seeking_description.data = artist.seeking_description
     form.image_link.data = artist.image_link
+
+
+def getArtistNameFromID(artistID):
+    return Artist.query.get(artistID).name
+
+def getArtistImageLinkFromID(artistID):
+    return Artist.query.get(artistID).image_link
