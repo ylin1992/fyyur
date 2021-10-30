@@ -297,7 +297,11 @@ if __name__ == '__main__':
             print(show_info)
             show.venue_id = data['venue_id']
             show.artist_id = data['artist_id']
-        
+            artist = Artist.query.get(show.artist_id)
+            venue = Venue.query.get(show.venue_id)
+            artist.shows.append(show)
+            venue.shows.append(show)
+
         # setup genres for venues
         for (venue, data) in zip(venues, sample_venues()):
             print(getGenres(data['genres']))

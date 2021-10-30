@@ -1,4 +1,5 @@
 import re
+from exceptions import DataNotFoundException
 from models import Venue, Show, Artist, Genre, db
 import genre_services
 import artist_services
@@ -38,8 +39,10 @@ def getAreas():
 
 def getVenueFromID(venue_id):
     venue = Venue.query.get(venue_id)
-    pastShows = show_services.getPastShowsByVenue(venue.id)
-    upcomingShows  = show_services.getUpcomingByVenue(venue.id)
+    if (venue is None):
+        raise DataNotFoundException
+    pastShows = venue.getPastShows()
+    upcomingShows  = venue.getUpcomingShows()
     return {
         'id': venue.id,
         'name': venue.name,
@@ -58,7 +61,7 @@ def getVenueFromID(venue_id):
             "artist_name": artist_services.getArtistNameFromID(show.artist_id),
             "artist_image_link": artist_services.getArtistImageLinkFromID(show.artist_id),
             "start_time": str(show.start_time)
-        } for show in pastShows],
+        } for show in upcomingShows],
         "upcoming_shows": [{ 
             "artist_id": show.artist_id,
             "artist_name": artist_services.getArtistNameFromID(show.artist_id),

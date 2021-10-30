@@ -1,4 +1,5 @@
 from models import Venue, Show, Artist, Genre, db
+import exceptions
 import genre_services
 import show_services
 import venue_services
@@ -14,9 +15,10 @@ def getArtistList():
 def getArtistByID(artist_id):
     artist = Artist.query.get(artist_id)
     if artist is None:
-        return None
-    pastShows = show_services.getPastShowsByArtist(artist.id)
-    upcomingShows  = show_services.getUpcomingByArtist(artist.id)
+        print("artist is none")
+        raise exceptions.DataNotFoundException
+    pastShows = artist.getPastShows()
+    upcomingShows  = artist.getUpcomingShows()
     return {
         "id": artist.id,
         "name": artist.name,

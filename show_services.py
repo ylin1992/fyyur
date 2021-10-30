@@ -18,9 +18,11 @@ def getShows():
     return data
 
 def createShowFromForm(formData):
-    if Venue.query.get(formData.venue_id.data) is None:
+    venue = Venue.query.get(formData.venue_id.data)
+    artist = Artist.query.get(formData.artist_id.data)
+    if venue is None:
         raise exceptions.DataNotFoundException(f'Venue ID: {formData.venue_id.data} not found')
-    if Artist.query.get(formData.artist_id.data) is None:
+    if artist is None:
         raise exceptions.DataNotFoundException(f'Artist ID: {formData.artist_id.data} not found')
     try:
         show = Show(
@@ -28,6 +30,8 @@ def createShowFromForm(formData):
             venue_id=formData.venue_id.data,
             artist_id=formData.artist_id.data
         )
+        venue.shows.append(show)
+        artist.shows.append(show)
     except Exception as e:
         raise e
 

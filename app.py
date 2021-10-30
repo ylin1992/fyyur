@@ -11,7 +11,7 @@ from flask import Flask, render_template, request, Response, flash, redirect, ur
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 import logging
-from logging import Formatter, FileHandler
+from logging import Formatter, FileHandler, error
 from flask_wtf import Form
 from forms import *
 from flask_migrate import Migrate
@@ -63,16 +63,11 @@ def index():
 
 @app.route('/venues')
 def venues():
-  # TODO: replace with real venues data.
-  #       num_upcoming_shows should be aggregated based on number of upcoming shows per venue.
   areas = venue_services.getAreas()
   return render_template('pages/venues.html', areas=areas);
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
-  # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
-  # seach for Hop should return "The Musical Hop".
-  # search for "Music" should return "The Musical Hop" and "Park Square Live Music & Coffee"
   
   searchTerm = request.form.get('search_term')
   print(f'Recieving search term {searchTerm}')
@@ -80,9 +75,14 @@ def search_venues():
 
 @app.route('/venues/<int:venue_id>')
 def show_venue(venue_id):
-  # shows the venue page with the given venue_id
-  # TODO: replace with real venue data from the venues table, using venue_id
-  return render_template('pages/show_venue.html', venue=venue_services.getVenueFromID(venue_id))
+  try:
+    venue = venue_services.getVenueFromID(venue_id)
+  except Exception as e:
+    if (e.__class__ == exceptions.DataNotFoundException):
+      return not_found_error(404)
+    else:
+      return server_error(500)
+  return render_template('pages/show_venue.html', venue=venue)
 
 #  Create Venue
 #  ----------------------------------------------------------------
@@ -125,30 +125,29 @@ def delete_venue(venue_id):
     else:
       return jsonify({ 'success': True })
 
-  # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
-  # clicking that button delete it from the db then redirect the user to the homepage
-
 #  Artists
 #  ----------------------------------------------------------------
 @app.route('/artists')
 def artists():
-  # TODO: replace with real data returned from querying the database
   return render_template('pages/artists.html', artists=artist_services.getArtistList())
 
 @app.route('/artists/search', methods=['POST'])
 def search_artists():
-  # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
-  # seach for "A" should return "Guns N Petals", "Matt Quevado", and "The Wild Sax Band".
-  # search for "band" should return "The Wild Sax Band".
   searchTerm = request.form.get('search_term')
   response = artist_services.searchArtistFromTerm(searchTerm)
   return render_template('pages/search_artists.html', results=response, search_term=request.form.get('search_term', ''))
 
 @app.route('/artists/<int:artist_id>')
 def show_artist(artist_id):
-  # shows the artist page with the given artist_id
-  # TODO: replace with real artist data from the artist table, using artist_id
-  return render_template('pages/show_artist.html', artist=artist_services.getArtistByID(artist_id))
+  try:
+    artist = artist_services.getArtistByID(artist_id)
+  except Exception as e:
+    print(e)
+    if e.__class__ == exceptions.DataNotFoundException:
+      return not_found_error(404)
+    else:
+      return server_error(505)
+  return render_template('pages/show_artist.html', artist=artist)
 
 #  Update
 #  ----------------------------------------------------------------
@@ -156,13 +155,10 @@ def show_artist(artist_id):
 def edit_artist(artist_id):
   form = ArtistForm()
   artist_services.preFilling(artist_id, form) 
-  # TODO: populate form with fields from artist with ID <artist_id>
   return render_template('forms/edit_artist.html', form=form, artist=artist_services.getArtistByID(artist_id))
 
 @app.route('/artists/<int:artist_id>/edit', methods=['POST'])
 def edit_artist_submission(artist_id):
-  # TODO: take values from the form submitted, and update existing
-  # artist record with ID <artist_id> using the new attributes
   form = ArtistForm()
   artist_services.updateArtistByForm(artist_id, form)
   return redirect(url_for('show_artist', artist_id=artist_id))
@@ -171,15 +167,12 @@ def edit_artist_submission(artist_id):
 def edit_venue(venue_id):
   form = VenueForm()
   venue_services.preFilling(venue_id, form)
-  # TODO: populate form with values from venue with ID <venue_id>
   return render_template('forms/edit_venue.html', form=form, venue=venue_services.getVenueFromID(venue_id))
 
 @app.route('/venues/<int:venue_id>/edit', methods=['POST'])
 def edit_venue_submission(venue_id):
   form = VenueForm()
   venue_services.updateVenueByForm(venue_id, form)
-  # TODO: take values from the form submitted, and update existing
-  # venue record with ID <venue_id> using the new attributes
   return redirect(url_for('show_venue', venue_id=venue_id))
 
 #  Create Artist
@@ -226,7 +219,6 @@ def create_shows():
 @app.route('/shows/create', methods=['POST'])
 def create_show_submission():
   # called to create new shows in the db, upon submitting new show listing form
-  # TODO: insert form data as a new Show record in the db, instead
   try:
     form = ShowForm()
     show_services.createShowFromForm(form)
