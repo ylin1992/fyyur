@@ -1,4 +1,4 @@
-from app import Venue, Show, Artist, Genre, db
+from models import Venue, Show, Artist, Genre, db
 import services
 import exceptions
 def getShows():
